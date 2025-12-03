@@ -20,24 +20,23 @@ L.tileLayer(
 
 let currentView = "risk"; // initial view
 
-// --- Legend control ---
-let legendControl;
+// --- Legend control (simple version) ---
+const legendControl = L.control({ position: "bottomleft" });
 
-const LegendControl = L.Control.extend({
-  onAdd: function () {
-    this._div = L.DomUtil.create("div", "legend leaflet-control");
-    this.update();
-    return this._div;
-  },
-  update: function (html) {
-    if (this._div) {
-      this._div.innerHTML = html || "";
-    }
+legendControl.onAdd = function (map) {
+  this._div = L.DomUtil.create("div", "legend");
+  this.update();
+  return this._div;
+};
+
+legendControl.update = function (html) {
+  if (this._div) {
+    this._div.innerHTML = html || "";
   }
-});
+};
 
-legendControl = new LegendControl({ position: "bottomleft" });
-map.addControl(legendControl);
+legendControl.addTo(map);
+
 
 // =======================================
 // 2. Helpers
