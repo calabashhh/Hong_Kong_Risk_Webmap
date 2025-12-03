@@ -18,9 +18,26 @@ L.tileLayer(
   }
 ).addTo(map);
 
-const legendEl = document.getElementById("legend");
-
 let currentView = "risk"; // initial view
+
+// --- Legend control ---
+let legendControl;
+
+const LegendControl = L.Control.extend({
+  onAdd: function () {
+    this._div = L.DomUtil.create("div", "legend leaflet-control");
+    this.update();
+    return this._div;
+  },
+  update: function (html) {
+    if (this._div) {
+      this._div.innerHTML = html || "";
+    }
+  }
+});
+
+legendControl = new LegendControl({ position: "bottomleft" });
+map.addControl(legendControl);
 
 // =======================================
 // 2. Helpers
@@ -79,7 +96,6 @@ function styleForView(view, feature) {
     }
 
     case "severity": {
-      // sev_norm, classes from QGIS legend (approx)
       const breaks = [0, 0.07, 0.27, 0.76, 2.17, 3.94];
       const colors = ["#fff7bc", "#fee391", "#fec44f", "#fe9929", "#d95f0e"];
       color = classifyColor(p.sev_norm, breaks, colors);
@@ -87,7 +103,6 @@ function styleForView(view, feature) {
     }
 
     case "rain": {
-      // vis_wea_refined_pct_rain, 0–1
       const breaks = [0, 0.075692, 0.22581, 0.4, 0.75, 1.0];
       const colors = ["#deebf7", "#c6dbef", "#9ecae1", "#6baed6", "#3182bd"];
       color = classifyColor(p.vis_wea_refined_pct_rain, breaks, colors);
@@ -95,7 +110,6 @@ function styleForView(view, feature) {
     }
 
     case "dark": {
-      // vis_wea_refined_pct_dark_or_twilight, 0–1
       const breaks = [0, 0.1333, 0.3684, 0.5556, 0.8, 1.0];
       const colors = ["#fde0dd", "#fbb6ce", "#f768a1", "#c51b8a", "#7a0177"];
       color = classifyColor(
@@ -107,7 +121,6 @@ function styleForView(view, feature) {
     }
 
     case "lighting": {
-      // Lighting Level_roads_lit_summary_lit_ratio, 0–1
       const breaks = [0.00008, 0.35266, 0.474, 0.56335, 0.69617, 1.0];
       const colors = ["#2d004b", "#542788", "#8073ac", "#f1a340", "#fee0b6"];
       color = classifyColor(
@@ -137,10 +150,9 @@ function styleForView(view, feature) {
     }
 
     case "slope": {
-      // Road Slope_slp_mean_clean, 0–20 %
       const breaks = [0, 3, 6, 10, 15, 19, 20];
       const colors = [
-        "#2c7bb6", // very low
+        "#2c7bb6",
         "#abd9e9",
         "#ffffbf",
         "#fdae61",
@@ -175,7 +187,7 @@ function crashPopup(feature) {
   const streetZh = p.STREET_CNAME ?? "";
   const lengthM = fmt(p.length_m, 1);
 
-  const crashDensity = fmt(p.crash_density, 2); // updated field name
+  const crashDensity = fmt(p.crash_density, 2);
   const crashCount = p["Crash Density_crash_crash_count"] ?? "N/A";
 
   const sevIndex = fmt(p.sev_norm, 2);
@@ -251,7 +263,7 @@ function crashPopup(feature) {
 // =======================================
 
 function renderLegend(title, subtitle, items) {
-  legendEl.innerHTML = `
+  const html = `
     <div class="legend-title">${title}</div>
     ${subtitle ? `<div class="legend-subtitle">${subtitle}</div>` : ""}
     ${items
@@ -265,6 +277,7 @@ function renderLegend(title, subtitle, items) {
       )
       .join("")}
   `;
+  legendControl.update(html);
 }
 
 function updateLegend(view) {
@@ -346,7 +359,7 @@ function updateLegend(view) {
       break;
 
     default:
-      legendEl.innerHTML = "";
+      legendControl.update("");
   }
 }
 
