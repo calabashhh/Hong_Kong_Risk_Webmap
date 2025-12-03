@@ -371,30 +371,36 @@ function updateLegend(view) {
 // hk_risk_crash comes from hk_risk_crash.js
 console.log("typeof hk_risk_crash =", typeof hk_risk_crash);
 
+// 1) Visible layer (pretty, but not interactive)
 const crashLayer = L.geoJSON(hk_risk_crash, {
   style: (feature) => styleForView(currentView, feature),
-  onEachFeature: function (feature, layer) {
-  layer.bindPopup(crashPopup(feature));
-
-  layer.on("mouseover", function (e) {
-    this.setStyle({
-      weight: 8,
-      opacity: 1
-    });
-    this.openPopup(e.latlng);
-  });
-
-  layer.on("mouseout", function () {
-    this.setStyle({
-      weight: 4,
-      opacity: 0.9
-    });
-    this.closePopup();
-  });
-}
-
-
+  interactive: false      // <-- important: hit layer will handle events
 }).addTo(map);
+
+// 2) Invisible hit layer (fat, transparent, handles hover + popup)
+const hitLayer = L.geoJSON(hk_risk_crash, {
+  style: () => ({
+    color: "#ffffff",
+    weight: 20,           // big hit area
+    opacity: 0,           // fully invisible
+  }),
+  onEachFeature: function (feature, layer) {
+    layer.bindPopup(crashPopup(feature));
+    let hoverTimer;
+
+    layer.on("mouseover", function (e) {
+      hoverTimer = setTimeout(() => {
+        this.openPopup(e.latlng);
+      }, 50); // tiny delay to avoid jitter
+    });
+
+    layer.on("mouseout", function () {
+      clearTimeout(hoverTimer);
+      this.closePopup();
+    });
+  }
+}).addTo(map);
+
 
 // Fit map to data bounds
 const bounds = crashLayer.getBounds();
