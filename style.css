@@ -6,11 +6,12 @@ html, body {
 }
 
 #map {
+  position: relative;      /* important so legend anchors inside */
   height: 100%;
   width: 100%;
 }
 
-/* View toggle control */
+/* View toggle control (unchanged) */
 .view-control {
   background: rgba(20, 20, 20, 0.9);
   padding: 6px;
@@ -52,6 +53,8 @@ html, body {
   border-radius: 8px;
   font-size: 11px;
   box-shadow: 0 0 4px rgba(0, 0, 0, 0.6);
+  z-index: 1000;           /* keep it above the map & tiles */
+  pointer-events: none;    /* so map interactions still work under it */
 }
 
 .legend-title {
