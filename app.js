@@ -168,7 +168,7 @@ function styleForView(view, feature) {
 
   return {
     color,
-    weight: 4,
+    weight: 2,
     opacity: 0.9,
     lineCap: "round",
     lineJoin: "round"
