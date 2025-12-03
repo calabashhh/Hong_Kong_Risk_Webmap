@@ -103,7 +103,7 @@ function styleForView(view, feature) {
 
     case "rain": {
       const breaks = [0, 0.075692, 0.22581, 0.4, 0.75, 1.0];
-      const colors = ["#deebf7", "#c6dbef", "#9ecae1", "#6baed6", "#3182bd"];
+      const colors = ["#deebf7", "#9ecae1", "#6baed6", "#3182bd", "#315bbd"];
       color = classifyColor(p.vis_wea_refined_pct_rain, breaks, colors);
       break;
     }
@@ -305,10 +305,10 @@ function updateLegend(view) {
     case "rain":
       renderLegend("Rain Risk", "Share of crashes in rain", [
         { color: "#deebf7", label: "0–8% Very Low" },
-        { color: "#c6dbef", label: "8–23% Low" },
-        { color: "#9ecae1", label: "23–40% Moderate" },
-        { color: "#6baed6", label: "40–75% High" },
-        { color: "#3182bd", label: "75–100% Very High" }
+        { color: "#9ecae1", label: "8–23% Low" },
+        { color: "#6baed6", label: "23–40% Moderate" },
+        { color: "#3182bd", label: "40–75% High" },
+        { color: "#315bbd", label: "75–100% Very High" }
       ]);
       break;
 
