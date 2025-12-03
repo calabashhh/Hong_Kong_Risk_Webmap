@@ -1,5 +1,5 @@
 // =======================================
-// 1. Initialize the Map + Basemap
+// 1. Map + Basemap
 // =======================================
 
 const map = L.map("map", {
@@ -18,12 +18,19 @@ L.tileLayer(
   }
 ).addTo(map);
 
+const legendEl = document.getElementById("legend");
+
+let currentView = "risk"; // initial view
 
 // =======================================
-// 2. Helpers for crash risk
+// 2. Helpers
 // =======================================
 
-// Map risk_class -> color + label
+function fmt(value, decimals) {
+  if (value === null || value === undefined || isNaN(value)) return "N/A";
+  return Number(value).toFixed(decimals);
+}
+
 function getRiskInfo(riskClass) {
   switch (riskClass) {
     case 0:
@@ -43,27 +50,120 @@ function getRiskInfo(riskClass) {
   }
 }
 
-// Line style for crash layer
-function crashRiskStyle(feature) {
-  const riskClass = feature.properties.risk_class;
-  const riskInfo = getRiskInfo(riskClass);
+// Generic classifier helper
+function classifyColor(value, breaks, colors) {
+  if (value === null || value === undefined || isNaN(value)) {
+    return "#555555"; // fallback for missing data
+  }
+  for (let i = 0; i < breaks.length - 1; i++) {
+    if (value >= breaks[i] && value < breaks[i + 1]) {
+      return colors[i];
+    }
+  }
+  return colors[colors.length - 1];
+}
+
+// =======================================
+// 3. Style per view
+// =======================================
+
+function styleForView(view, feature) {
+  const p = feature.properties || {};
+  let color = "#ffffff";
+
+  switch (view) {
+    case "risk": {
+      const info = getRiskInfo(p.risk_class);
+      color = info.color;
+      break;
+    }
+
+    case "severity": {
+      // sev_norm, classes from QGIS legend (approx)
+      const breaks = [0, 0.07, 0.27, 0.76, 2.17, 3.94];
+      const colors = ["#fff7bc", "#fee391", "#fec44f", "#fe9929", "#d95f0e"];
+      color = classifyColor(p.sev_norm, breaks, colors);
+      break;
+    }
+
+    case "rain": {
+      // vis_wea_refined_pct_rain, 0–1
+      const breaks = [0, 0.075692, 0.22581, 0.4, 0.75, 1.0];
+      const colors = ["#deebf7", "#c6dbef", "#9ecae1", "#6baed6", "#3182bd"];
+      color = classifyColor(p.vis_wea_refined_pct_rain, breaks, colors);
+      break;
+    }
+
+    case "dark": {
+      // vis_wea_refined_pct_dark_or_twilight, 0–1
+      const breaks = [0, 0.1333, 0.3684, 0.5556, 0.8, 1.0];
+      const colors = ["#fde0dd", "#fbb6ce", "#f768a1", "#c51b8a", "#7a0177"];
+      color = classifyColor(
+        p.vis_wea_refined_pct_dark_or_twilight,
+        breaks,
+        colors
+      );
+      break;
+    }
+
+    case "lighting": {
+      // Lighting Level_roads_lit_summary_lit_ratio, 0–1
+      const breaks = [0.00008, 0.35266, 0.474, 0.56335, 0.69617, 1.0];
+      const colors = ["#2d004b", "#542788", "#8073ac", "#f1a340", "#fee0b6"];
+      color = classifyColor(
+        p["Lighting Level_roads_lit_summary_lit_ratio"],
+        breaks,
+        colors
+      );
+      break;
+    }
+
+    case "crossings": {
+      const v = p.crossing_density;
+      if (v === 0) {
+        color = "#f7f7f7"; // None
+      } else if (v > 0 && v < 3) {
+        color = "#d9b365"; // Sparse
+      } else if (v >= 3 && v < 5) {
+        color = "#f6e8c3"; // Moderate
+      } else if (v >= 5 && v < 10) {
+        color = "#c7eae5"; // Dense
+      } else if (v >= 10) {
+        color = "#5ab4ac"; // Very Dense
+      } else {
+        color = "#555555";
+      }
+      break;
+    }
+
+    case "slope": {
+      // Road Slope_slp_mean_clean, 0–20 %
+      const breaks = [0, 3, 6, 10, 15, 19, 20];
+      const colors = [
+        "#2c7bb6", // very low
+        "#abd9e9",
+        "#ffffbf",
+        "#fdae61",
+        "#f46d43",
+        "#d73027"
+      ];
+      color = classifyColor(p["Road Slope_slp_mean_clean"], breaks, colors);
+      break;
+    }
+
+    default:
+      color = "#ffffff";
+  }
 
   return {
-    color: riskInfo.color,
+    color,
     weight: 2,
     opacity: 0.9
   };
 }
 
-// Safe number formatter
-function fmt(value, decimals) {
-  if (value === null || value === undefined || isNaN(value)) return "N/A";
-  return Number(value).toFixed(decimals);
-}
-
-
 // =======================================
-// 3. Popup: QGIS-style HTML, updated fields
+// 4. Popup (same for all views)
 // =======================================
 
 function crashPopup(feature) {
@@ -78,7 +178,7 @@ function crashPopup(feature) {
   const crashDensity = fmt(p.crash_density, 2); // updated field name
   const crashCount = p["Crash Density_crash_crash_count"] ?? "N/A";
 
-  const sevIndex = fmt(p.sev_norm, 2);          // updated field name
+  const sevIndex = fmt(p.sev_norm, 2);
   const rainPct = fmt((p.vis_wea_refined_pct_rain ?? 0) * 100, 1);
   const darkPct = fmt(
     (p.vis_wea_refined_pct_dark_or_twilight ?? 0) * 100,
@@ -146,27 +246,179 @@ function crashPopup(feature) {
   `;
 }
 
+// =======================================
+// 5. Legend rendering
+// =======================================
+
+function renderLegend(title, subtitle, items) {
+  legendEl.innerHTML = `
+    <div class="legend-title">${title}</div>
+    ${subtitle ? `<div class="legend-subtitle">${subtitle}</div>` : ""}
+    ${items
+      .map(
+        (item) => `
+        <div class="legend-row">
+          <span class="legend-swatch" style="background:${item.color};"></span>
+          <span class="legend-label">${item.label}</span>
+        </div>
+      `
+      )
+      .join("")}
+  `;
+}
+
+function updateLegend(view) {
+  switch (view) {
+    case "risk":
+      renderLegend("Crash Risk", "Composite risk (2014–2019)", [
+        { color: "#969696", label: "0 – No Recorded Crashes" },
+        { color: "#66bb6a", label: "1 – Very Low Risk" },
+        { color: "#b0e57c", label: "2 – Low Risk" },
+        { color: "#d4b800", label: "3 – Moderate Risk" },
+        { color: "#ff9800", label: "4 – High Risk" },
+        { color: "#e53935", label: "5 – Very High Risk" }
+      ]);
+      break;
+
+    case "severity":
+      renderLegend("Severity Weighted", "Weighted severity index per segment", [
+        { color: "#fff7bc", label: "0.00–0.07 Very Low" },
+        { color: "#fee391", label: "0.07–0.27 Low" },
+        { color: "#fec44f", label: "0.27–0.76 Moderate" },
+        { color: "#fe9929", label: "0.76–2.17 High" },
+        { color: "#d95f0e", label: "2.17–3.94 Very High" }
+      ]);
+      break;
+
+    case "rain":
+      renderLegend("Rain Risk", "Share of crashes in rain", [
+        { color: "#deebf7", label: "0–8% Very Low" },
+        { color: "#c6dbef", label: "8–23% Low" },
+        { color: "#9ecae1", label: "23–40% Moderate" },
+        { color: "#6baed6", label: "40–75% High" },
+        { color: "#3182bd", label: "75–100% Very High" }
+      ]);
+      break;
+
+    case "dark":
+      renderLegend("Darkness Risk", "Share of crashes in dark/twilight", [
+        { color: "#fde0dd", label: "0–13% Very Low" },
+        { color: "#fbb6ce", label: "13–37% Low" },
+        { color: "#f768a1", label: "37–56% Moderate" },
+        { color: "#c51b8a", label: "56–80% High" },
+        { color: "#7a0177", label: "80–100% Very High" }
+      ]);
+      break;
+
+    case "lighting":
+      renderLegend("Lighting Level", "Share of road length that is lit", [
+        { color: "#2d004b", label: "0–35% Very Low" },
+        { color: "#542788", label: "35–47% Low" },
+        { color: "#8073ac", label: "47–56% Moderate" },
+        { color: "#f1a340", label: "56–70% High" },
+        { color: "#fee0b6", label: "70–100% Very High" }
+      ]);
+      break;
+
+    case "crossings":
+      renderLegend(
+        "Pedestrian Crossing Density",
+        "Crossings per 100m of road",
+        [
+          { color: "#f7f7f7", label: "0   None" },
+          { color: "#d9b365", label: "0–3 Sparse" },
+          { color: "#f6e8c3", label: "3–5 Moderate" },
+          { color: "#c7eae5", label: "5–10 Dense" },
+          { color: "#5ab4ac", label: "10–100 Very Dense" }
+        ]
+      );
+      break;
+
+    case "slope":
+      renderLegend("Road Elevation Variability", "Mean slope (%)", [
+        { color: "#2c7bb6", label: "0–3% Very Low" },
+        { color: "#abd9e9", label: "3–6% Low" },
+        { color: "#ffffbf", label: "6–10% Moderate" },
+        { color: "#fdae61", label: "10–15% High" },
+        { color: "#f46d43", label: "15–19% Very High" },
+        { color: "#d73027", label: "19–20% Extreme" }
+      ]);
+      break;
+
+    default:
+      legendEl.innerHTML = "";
+  }
+}
 
 // =======================================
-// 4. Create crash layer & add to map
+// 6. Create layer + view switcher
 // =======================================
 
 // hk_risk_crash comes from hk_risk_crash.js
 console.log("typeof hk_risk_crash =", typeof hk_risk_crash);
 
 const crashLayer = L.geoJSON(hk_risk_crash, {
-  style: crashRiskStyle,
+  style: (feature) => styleForView(currentView, feature),
   onEachFeature: function (feature, layer) {
     layer.bindPopup(crashPopup(feature));
   }
-});
+}).addTo(map);
 
-crashLayer.addTo(map);
-
-// Zoom map to layer extent
+// Fit map to data bounds
 const bounds = crashLayer.getBounds();
 if (bounds && bounds.isValid && bounds.isValid()) {
   map.fitBounds(bounds);
 }
+
+// --- View switcher control ---
+
+const viewOptions = [
+  { id: "risk", label: "Crash Risk" },
+  { id: "severity", label: "Severity" },
+  { id: "rain", label: "Rain Risk" },
+  { id: "dark", label: "Darkness Risk" },
+  { id: "lighting", label: "Lighting" },
+  { id: "crossings", label: "Crossings" },
+  { id: "slope", label: "Slope" }
+];
+
+const ViewControl = L.Control.extend({
+  onAdd: function () {
+    const div = L.DomUtil.create("div", "view-control");
+    div.innerHTML = viewOptions
+      .map(
+        (v) => `<button data-view="${v.id}">${v.label}</button>`
+      )
+      .join("");
+    L.DomEvent.disableClickPropagation(div);
+
+    div.addEventListener("click", (e) => {
+      if (e.target.tagName === "BUTTON") {
+        const viewId = e.target.dataset.view;
+        setView(viewId);
+      }
+    });
+
+    return div;
+  }
+});
+
+map.addControl(new ViewControl({ position: "topright" }));
+
+function setView(viewId) {
+  currentView = viewId;
+  crashLayer.setStyle((feature) => styleForView(viewId, feature));
+  updateLegend(viewId);
+
+  // update active button
+  document
+    .querySelectorAll(".view-control button")
+    .forEach((btn) => {
+      btn.classList.toggle("active", btn.dataset.view === viewId);
+    });
+}
+
+// initialize default view
+setView("risk");
 
 console.log("Crash risk layer loaded:", crashLayer);
