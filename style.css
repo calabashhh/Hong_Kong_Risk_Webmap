@@ -43,18 +43,57 @@ html, body {
 }
 
 /* Legend */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: "Segoe UI", sans-serif;
+}
+
+#map {
+  height: 100%;
+  width: 100%;
+}
+
+/* View toggle control */
+.view-control {
+  background: rgba(20, 20, 20, 0.9);
+  padding: 6px;
+  border-radius: 8px;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.6);
+}
+
+.view-control button {
+  display: block;
+  width: 100%;
+  margin: 2px 0;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.08);
+  color: #f0f0f0;
+  font-size: 11px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.view-control button:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.view-control button.active {
+  background: #ff9800;
+  color: #111;
+}
+
+/* Legend as Leaflet control */
 .legend {
-  position: absolute;
-  bottom: 20px;
-  left: 20px;
   background: rgba(20, 20, 20, 0.9);
   color: #f0f0f0;
   padding: 8px 10px;
   border-radius: 8px;
   font-size: 11px;
   box-shadow: 0 0 4px rgba(0, 0, 0, 0.6);
-  z-index: 1000;           /* keep it above the map & tiles */
-  pointer-events: none;    /* so map interactions still work under it */
 }
 
 .legend-title {
@@ -84,3 +123,4 @@ html, body {
 .legend-label {
   white-space: nowrap;
 }
+
