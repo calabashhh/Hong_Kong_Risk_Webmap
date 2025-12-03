@@ -96,7 +96,7 @@ function styleForView(view, feature) {
 
     case "severity": {
       const breaks = [0, 0.07, 0.27, 0.76, 2.17, 3.94];
-      const colors = ["#fff7bc", "#fec44f", "#fe9929", "#d69422", "#b01f0c"];
+      const colors = ["#fff7bc", "#fec44f", "#fe9929", "#b34d1b", "#b01f0c"];
       color = classifyColor(p.sev_norm, breaks, colors);
       break;
     }
@@ -297,7 +297,7 @@ function updateLegend(view) {
         { color: "#fff7bc", label: "0.00–0.07 Very Low" },
         { color: "#fec44f", label: "0.07–0.27 Low" },
         { color: "#fe9929", label: "0.27–0.76 Moderate" },
-        { color: "#d69422", label: "0.76–2.17 High" },
+        { color: "#b34d1b", label: "0.76–2.17 High" },
         { color: "#b01f0c", label: "2.17–3.94 Very High" }
       ]);
       break;
