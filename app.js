@@ -96,7 +96,7 @@ function styleForView(view, feature) {
 
     case "severity": {
       const breaks = [0, 0.07, 0.27, 0.76, 2.17, 3.94];
-      const colors = ["#fff7bc", "#fee391", "#fec44f", "#fe9929", "#d95f0e"];
+      const colors = ["#fff7bc", "#fec44f", "#fe9929", "#d69422", "#b01f0c"];
       color = classifyColor(p.sev_norm, breaks, colors);
       break;
     }
@@ -133,7 +133,7 @@ function styleForView(view, feature) {
     case "crossings": {
       const v = p.crossing_density;
       if (v === 0) {
-        color = "#f7f7f7"; // None
+        color = "#734e2e"; // None
       } else if (v > 0 && v < 3) {
         color = "#d9b365"; // Sparse
       } else if (v >= 3 && v < 5) {
@@ -295,10 +295,10 @@ function updateLegend(view) {
     case "severity":
       renderLegend("Severity Weighted", "Weighted severity index per segment", [
         { color: "#fff7bc", label: "0.00–0.07 Very Low" },
-        { color: "#fee391", label: "0.07–0.27 Low" },
-        { color: "#fec44f", label: "0.27–0.76 Moderate" },
-        { color: "#fe9929", label: "0.76–2.17 High" },
-        { color: "#d95f0e", label: "2.17–3.94 Very High" }
+        { color: "#fec44f", label: "0.07–0.27 Low" },
+        { color: "#fe9929", label: "0.27–0.76 Moderate" },
+        { color: "#d69422", label: "0.76–2.17 High" },
+        { color: "#b01f0c", label: "2.17–3.94 Very High" }
       ]);
       break;
 
@@ -337,7 +337,7 @@ function updateLegend(view) {
         "Pedestrian Crossing Density",
         "Crossings per 100m of road",
         [
-          { color: "#f7f7f7", label: "0   None" },
+          { color: "#734e2e", label: "0   None" },
           { color: "#d9b365", label: "0–3 Sparse" },
           { color: "#f6e8c3", label: "3–5 Moderate" },
           { color: "#c7eae5", label: "5–10 Dense" },
