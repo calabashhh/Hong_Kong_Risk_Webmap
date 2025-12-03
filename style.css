@@ -124,3 +124,18 @@ html, body {
   white-space: nowrap;
 }
 
+/* ------------------------------------------
+   CUSTOM POPUP STYLE (REMOVE WHITE BOX)
+------------------------------------------- */
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.leaflet-popup-content {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+
