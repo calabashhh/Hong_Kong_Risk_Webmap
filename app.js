@@ -168,8 +168,10 @@ function styleForView(view, feature) {
 
   return {
     color,
-    weight: 2,
-    opacity: 0.9
+    weight: 4,
+    opacity: 0.9,
+    lineCap: "round",
+    lineJoin: "round"
   };
 }
 
@@ -376,7 +378,7 @@ const crashLayer = L.geoJSON(hk_risk_crash, {
 
   layer.on("mouseover", function (e) {
     this.setStyle({
-      weight: 5,
+      weight: 8,
       opacity: 1
     });
     this.openPopup(e.latlng);
@@ -384,7 +386,7 @@ const crashLayer = L.geoJSON(hk_risk_crash, {
 
   layer.on("mouseout", function () {
     this.setStyle({
-      weight: 2,
+      weight: 4,
       opacity: 0.9
     });
     this.closePopup();
