@@ -52,9 +52,9 @@ function getRiskInfo(riskClass) {
     case 0:
       return { color: "#969696", label: "No Recorded Crashes" };
     case 1:
-      return { color: "#66bb6a", label: "Very Low Risk" };
+      return { color: "#357538", label: "Very Low Risk" };
     case 2:
-      return { color: "#b0e57c", label: "Low Risk" };
+      return { color: "#66bb6a", label: "Low Risk" };
     case 3:
       return { color: "#d4b800", label: "Moderate Risk" };
     case 4:
@@ -284,8 +284,8 @@ function updateLegend(view) {
     case "risk":
       renderLegend("Crash Risk", "Composite risk (2014–2019)", [
         { color: "#969696", label: "0 – No Recorded Crashes" },
-        { color: "#66bb6a", label: "1 – Very Low Risk" },
-        { color: "#b0e57c", label: "2 – Low Risk" },
+        { color: "#357538", label: "1 – Very Low Risk" },
+        { color: "#66bb6a", label: "2 – Low Risk" },
         { color: "#d4b800", label: "3 – Moderate Risk" },
         { color: "#ff9800", label: "4 – High Risk" },
         { color: "#e53935", label: "5 – Very High Risk" }
