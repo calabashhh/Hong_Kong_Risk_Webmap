@@ -143,7 +143,7 @@ function styleForView(view, feature) {
       } else if (v >= 10) {
         color = "#5ab4ac"; // Very Dense
       } else {
-        color = "#555555";
+        color = "#734e2e";
       }
       break;
     }
