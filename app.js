@@ -372,8 +372,26 @@ console.log("typeof hk_risk_crash =", typeof hk_risk_crash);
 const crashLayer = L.geoJSON(hk_risk_crash, {
   style: (feature) => styleForView(currentView, feature),
   onEachFeature: function (feature, layer) {
-    layer.bindPopup(crashPopup(feature));
-  }
+  layer.bindPopup(crashPopup(feature));
+
+  layer.on("mouseover", function (e) {
+    this.setStyle({
+      weight: 5,
+      opacity: 1
+    });
+    this.openPopup(e.latlng);
+  });
+
+  layer.on("mouseout", function () {
+    this.setStyle({
+      weight: 2,
+      opacity: 0.9
+    });
+    this.closePopup();
+  });
+}
+
+
 }).addTo(map);
 
 // Fit map to data bounds
