@@ -392,7 +392,7 @@ const hitLayer = L.geoJSON(hk_risk_crash, {
 
     layer.on("mouseover", function (e) {
   hoverTimer = setTimeout(() => {
-    const padding = 20; // pixels from edge to keep popup inside
+    const padding = 40; // pixels from edge to keep popup inside
 
     // Convert mouse latlng to pixel coords in the map container
     let pt = map.latLngToContainerPoint(e.latlng);
