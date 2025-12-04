@@ -377,41 +377,43 @@ const crashLayer = L.geoJSON(hk_risk_crash, {
   interactive: false      // <-- important: hit layer will handle events
 }).addTo(map);
 
-// 2) Invisible hit layer (fat, transparent, handles hover + popup)
+const hoverCard = document.getElementById("hover-card");
+
 const hitLayer = L.geoJSON(hk_risk_crash, {
   style: () => ({
     color: "#ffffff",
-    weight: 20,           // big hit area
-    opacity: 0,           // fully invisible
+    weight: 20,   // big, forgiving hit area
+    opacity: 0    // fully invisible
   }),
   onEachFeature: function (feature, layer) {
-    layer.bindPopup(crashPopup(feature), {
-      autoPan: false // <-- stop the map from shifting itself
-    });
     let hoverTimer;
 
     layer.on("mouseover", function (e) {
-  hoverTimer = setTimeout(() => {
-    const padding = 40; // pixels from edge to keep popup inside
+      hoverTimer = setTimeout(() => {
+        const padding = 20; // pixels from map edges
 
-    // Convert mouse latlng to pixel coords in the map container
-    let pt = map.latLngToContainerPoint(e.latlng);
-    const size = map.getSize();
+        // Convert latlng to pixel coords in the map container
+        let pt = map.latLngToContainerPoint(e.latlng);
+        const size = map.getSize();
 
-    // Clamp the point so it stays within [padding, width-padding] etc.
-    pt.x = Math.min(Math.max(pt.x, padding), size.x - padding);
-    pt.y = Math.min(Math.max(pt.y, padding), size.y - padding);
+        // Clamp point so card stays inside the map + padding
+        pt.x = Math.min(Math.max(pt.x, padding), size.x - padding);
+        pt.y = Math.min(Math.max(pt.y, padding), size.y - padding);
 
-    // Convert back to latlng and open popup there
-    const adjustedLatLng = map.containerPointToLatLng(pt);
-    this.openPopup(adjustedLatLng);
-  }, 50);
-});
+        // Position card slightly offset from the point so it's not directly under cursor
+        hoverCard.style.left = pt.x + 10 + "px";
+        hoverCard.style.top = pt.y + 10 + "px";
 
+        // Fill with your QGIS-style HTML
+        hoverCard.innerHTML = crashPopup(feature);
+
+        hoverCard.style.display = "block";
+      }, 50); // tiny delay to avoid flicker
+    });
 
     layer.on("mouseout", function () {
       clearTimeout(hoverTimer);
-      this.closePopup();
+      hoverCard.style.display = "none";
     });
   }
 }).addTo(map);
