@@ -392,23 +392,37 @@ const hitLayer = L.geoJSON(hk_risk_crash, {
       hoverTimer = setTimeout(() => {
         const padding = 20; // pixels from map edges
 
-        // Convert latlng to pixel coords in the map container
-        let pt = map.latLngToContainerPoint(e.latlng);
-        const size = map.getSize();
-
-        // Clamp point so card stays inside the map + padding
-        pt.x = Math.min(Math.max(pt.x, padding), size.x - padding);
-        pt.y = Math.min(Math.max(pt.y, padding), size.y - padding);
-
-        // Position card slightly offset from the point so it's not directly under cursor
-        hoverCard.style.left = pt.x + 10 + "px";
-        hoverCard.style.top = pt.y + 10 + "px";
-
-        // Fill with your QGIS-style HTML
+        // 1) Fill the card with HTML and make it measurable
         hoverCard.innerHTML = crashPopup(feature);
-
         hoverCard.style.display = "block";
-      }, 50); // tiny delay to avoid flicker
+        hoverCard.style.visibility = "hidden"; // show after we position
+
+        const size = map.getSize(); // map width/height in pixels
+        const cardRect = hoverCard.getBoundingClientRect();
+
+        // 2) Base position: down-right of cursor (in container coords)
+        //    e.containerPoint is the mouse position relative to the map
+        let x = e.containerPoint.x + 10;
+        let y = e.containerPoint.y + 10;
+
+        // 3) If it would go off the right edge, flip to left
+        if (x + cardRect.width > size.x - padding) {
+          x = e.containerPoint.x - cardRect.width - 10;
+        }
+
+        // 4) If it would go off the bottom edge, flip above
+        if (y + cardRect.height > size.y - padding) {
+          y = e.containerPoint.y - cardRect.height - 10;
+        }
+
+        // 5) Final clamp so it's always at least padding from edges
+        if (x < padding) x = padding;
+        if (y < padding) y = padding;
+
+        hoverCard.style.left = x + "px";
+        hoverCard.style.top = y + "px";
+        hoverCard.style.visibility = "visible";
+      }, 50);
     });
 
     layer.on("mouseout", function () {
