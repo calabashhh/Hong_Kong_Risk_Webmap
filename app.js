@@ -385,7 +385,9 @@ const hitLayer = L.geoJSON(hk_risk_crash, {
     opacity: 0,           // fully invisible
   }),
   onEachFeature: function (feature, layer) {
-    layer.bindPopup(crashPopup(feature));
+    layer.bindPopup(crashPopup(feature), {
+      autoPan: false // <-- stop the map from shifting itself
+    });
     let hoverTimer;
 
     layer.on("mouseover", function (e) {
