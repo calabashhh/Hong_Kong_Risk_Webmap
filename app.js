@@ -4,7 +4,7 @@
 
 const map = L.map("map", {
   center: [22.32, 114.17], // Hong Kong approx
-  zoom: 14,
+  zoom: 16,
   minZoom: 10,
   maxZoom: 18
 });
