@@ -391,10 +391,23 @@ const hitLayer = L.geoJSON(hk_risk_crash, {
     let hoverTimer;
 
     layer.on("mouseover", function (e) {
-      hoverTimer = setTimeout(() => {
-        this.openPopup(e.latlng);
-      }, 50); // tiny delay to avoid jitter
-    });
+  hoverTimer = setTimeout(() => {
+    const padding = 20; // pixels from edge to keep popup inside
+
+    // Convert mouse latlng to pixel coords in the map container
+    let pt = map.latLngToContainerPoint(e.latlng);
+    const size = map.getSize();
+
+    // Clamp the point so it stays within [padding, width-padding] etc.
+    pt.x = Math.min(Math.max(pt.x, padding), size.x - padding);
+    pt.y = Math.min(Math.max(pt.y, padding), size.y - padding);
+
+    // Convert back to latlng and open popup there
+    const adjustedLatLng = map.containerPointToLatLng(pt);
+    this.openPopup(adjustedLatLng);
+  }, 50);
+});
+
 
     layer.on("mouseout", function () {
       clearTimeout(hoverTimer);
