@@ -11,7 +11,7 @@ const map = L.map("map", {
 
 // CartoDB Dark Matter basemap
 L.tileLayer(
-  "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+  "https://basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}.png?key=cb1_316i_1_7420184ded0f7b53c5cc16cd",
   {
     attribution:
       '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>, &copy; CARTO'
