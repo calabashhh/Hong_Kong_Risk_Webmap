@@ -10,12 +10,19 @@ const map = L.map("map", {
 });
 
 // CartoDB Dark Matter basemap
+map.createPane("darkBasemapPane");
+
+const darkBasemapPane = map.getPane("darkBasemapPane");
+darkBasemapPane.style.zIndex = 200;
+darkBasemapPane.style.filter =
+    "brightness(0.62) contrast(1.12) saturate(0.85)";
+
 L.tileLayer(
-  "https://basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}.png?key=cb1_316i_1_7420184ded0f7b53c5cc16cd",
-  {
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>, &copy; CARTO'
-  }
+    "https://basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}.png?key=cb1_316i_1_7420184ded0f7b53c5cc16cd",
+    {
+        pane: "darkBasemapPane",
+        attribution: "&copy; OpenStreetMap contributors &copy; CARTO"
+    }
 ).addTo(map);
 
 let currentView = "risk"; // initial view
